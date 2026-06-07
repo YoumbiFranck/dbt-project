@@ -1,0 +1,109 @@
+version: 2
+
+models:
+
+  - name: dim_customers
+    description: >
+      Dimension clients enrichie avec les métriques de commande agrégées.
+      Chaque ligne représente un client unique.
+    columns:
+      - name: customer_id
+        description: "Clé primaire du client."
+        tests:
+          - unique
+          - not_null
+      - name: full_name
+        description: "Nom complet (prénom + nom)."
+        tests:
+          - not_null
+      - name: email
+        description: "Email du client."
+      - name: country
+        description: "Pays du client."
+      - name: created_at
+        description: "Date de création du compte."
+        tests:
+          - not_null
+      - name: total_orders
+        description: "Nombre total de commandes passées."
+      - name: total_revenue
+        description: "Montant total des commandes completed."
+      - name: first_order_date
+        description: "Date de la première commande."
+      - name: last_order_date
+        description: "Date de la dernière commande."
+
+  - name: dim_products
+    description: >
+      Dimension produits enrichie avec les métriques de ventes agrégées.
+      Seuls les produits actifs sont inclus.
+    columns:
+      - name: product_id
+        description: "Clé primaire du produit."
+        tests:
+          - unique
+          - not_null
+      - name: name
+        description: "Nom du produit."
+        tests:
+          - not_null
+      - name: category
+        description: "Catégorie."
+        tests:
+          - not_null
+      - name: unit_price
+        description: "Prix unitaire courant."
+        tests:
+          - not_null
+      - name: total_quantity_sold
+        description: "Quantité totale vendue (commandes completed)."
+      - name: total_revenue
+        description: "Revenu total généré."
+
+  - name: fct_orders
+    description: >
+      Table de faits des commandes, enrichie avec les informations
+      clients et produits pour faciliter l'analyse.
+    columns:
+      - name: order_id
+        description: "Clé primaire de la commande."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Référence client."
+        tests:
+          - not_null
+      - name: product_id
+        description: "Référence produit."
+        tests:
+          - not_null
+      - name: customer_full_name
+        description: "Nom complet du client."
+      - name: customer_country
+        description: "Pays du client."
+      - name: product_name
+        description: "Nom du produit commandé."
+      - name: product_category
+        description: "Catégorie du produit."
+      - name: quantity
+        description: "Quantité commandée."
+        tests:
+          - not_null
+      - name: unit_price
+        description: "Prix unitaire appliqué."
+        tests:
+          - not_null
+      - name: order_total
+        description: "Montant total de la commande."
+        tests:
+          - not_null
+      - name: status
+        description: "Statut de la commande."
+        tests:
+          - accepted_values:
+              values: ['pending', 'shipped', 'completed', 'cancelled']
+      - name: ordered_at
+        description: "Date de la commande."
+        tests:
+          - not_null

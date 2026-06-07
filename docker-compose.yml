@@ -1,0 +1,95 @@
+version: "3.9"
+
+networks:
+  dbt-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  pgadmin-data:
+
+services:
+
+  # ─── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: dbt-postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+    networks:
+      - dbt-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── pgAdmin ───────────────────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dbt-pgadmin
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_LISTEN_PORT: ${PGADMIN_LISTEN_PORT}
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - dbt-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ─── dbt (service éphémère, lancé via make) ────────────────────────────────
+  dbt:
+    build:
+      context: .
+      dockerfile: Dockerfile.dbt
+    container_name: dbt-runner
+    env_file: .env
+    environment:
+      DBT_PROFILES_DIR: /usr/app/dbt
+    volumes:
+      - ./dbt:/usr/app/dbt
+    networks:
+      - dbt-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - dbt
+
+  # ─── dbt docs serve (port 8081) ────────────────────────────────────────────
+  dbt-docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.dbt
+    container_name: dbt-docs
+    env_file: .env
+    environment:
+      DBT_PROFILES_DIR: /usr/app/dbt
+    volumes:
+      - ./dbt:/usr/app/dbt
+    ports:
+      - "8081:8080"
+    networks:
+      - dbt-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["docs", "serve", "--port", "8080"]
+    profiles:
+      - docs

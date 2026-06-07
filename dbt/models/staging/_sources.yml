@@ -1,0 +1,58 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Données brutes chargées directement depuis les systèmes sources.
+      Ce schéma simule ce qu'un outil EL (Fivetran, Airbyte…) déposerait
+      dans l'entrepôt sans transformation.
+    schema: raw
+    tables:
+
+      - name: customers
+        description: "Table brute des clients."
+        columns:
+          - name: id
+            description: "Identifiant unique du client."
+          - name: first_name
+            description: "Prénom."
+          - name: last_name
+            description: "Nom de famille."
+          - name: email
+            description: "Adresse email (peut être NULL)."
+          - name: country
+            description: "Pays du client (peut être NULL)."
+          - name: created_at
+            description: "Date de création du compte (VARCHAR brut)."
+
+      - name: products
+        description: "Table brute des produits du catalogue."
+        columns:
+          - name: id
+            description: "Identifiant unique du produit."
+          - name: name
+            description: "Nom du produit."
+          - name: category
+            description: "Catégorie."
+          - name: unit_price
+            description: "Prix unitaire en VARCHAR brut."
+          - name: is_active
+            description: "Indicateur d'activité ('true'/'false' en texte)."
+
+      - name: orders
+        description: "Table brute des commandes."
+        columns:
+          - name: id
+            description: "Identifiant unique de la commande."
+          - name: customer_id
+            description: "Référence vers raw.customers.id."
+          - name: product_id
+            description: "Référence vers raw.products.id."
+          - name: quantity
+            description: "Quantité commandée."
+          - name: unit_price
+            description: "Prix unitaire au moment de la commande (VARCHAR brut)."
+          - name: status
+            description: "Statut : pending, shipped, completed, cancelled."
+          - name: ordered_at
+            description: "Date de la commande (VARCHAR brut)."

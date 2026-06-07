@@ -1,0 +1,101 @@
+version: 2
+
+models:
+
+  - name: stg_customers
+    description: >
+      Clients nettoyés et typés depuis raw.customers.
+      Les lignes sans email ET sans pays sont exclues.
+    columns:
+      - name: customer_id
+        description: "Clé primaire du client."
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: "Prénom."
+        tests:
+          - not_null
+      - name: last_name
+        description: "Nom de famille."
+        tests:
+          - not_null
+      - name: email
+        description: "Email (NULL accepté)."
+      - name: country
+        description: "Pays (NULL accepté)."
+      - name: created_at
+        description: "Date de création castée en DATE."
+        tests:
+          - not_null
+
+  - name: stg_orders
+    description: >
+      Commandes nettoyées depuis raw.orders.
+      Le prix et la date sont castés ; le montant total est calculé.
+    columns:
+      - name: order_id
+        description: "Clé primaire de la commande."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Référence vers stg_customers."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: product_id
+        description: "Référence vers stg_products."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_products')
+              field: product_id
+      - name: quantity
+        description: "Quantité commandée."
+        tests:
+          - not_null
+      - name: unit_price
+        description: "Prix unitaire castée en NUMERIC."
+        tests:
+          - not_null
+      - name: order_total
+        description: "Montant total = quantity × unit_price."
+      - name: status
+        description: "Statut de la commande."
+        tests:
+          - accepted_values:
+              values: ['pending', 'shipped', 'completed', 'cancelled']
+      - name: ordered_at
+        description: "Date de la commande castée en DATE."
+        tests:
+          - not_null
+
+  - name: stg_products
+    description: >
+      Produits nettoyés depuis raw.products.
+      Le prix est castée en NUMERIC et is_active en BOOLEAN.
+    columns:
+      - name: product_id
+        description: "Clé primaire du produit."
+        tests:
+          - unique
+          - not_null
+      - name: name
+        description: "Nom du produit."
+        tests:
+          - not_null
+      - name: category
+        description: "Catégorie du produit."
+        tests:
+          - not_null
+      - name: unit_price
+        description: "Prix unitaire en NUMERIC."
+        tests:
+          - not_null
+      - name: is_active
+        description: "Produit actif (BOOLEAN)."
+        tests:
+          - not_null
