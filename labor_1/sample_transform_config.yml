@@ -1,0 +1,38 @@
+source_table: raw_sales_data
+target_table: transformed_sales_summary
+
+# Transformation logic - maps output columns to source logic
+transformations:
+  customer_id: customer_id
+  customer_name: UPPER(customer_name)
+  total_revenue: SUM(order_amount)
+  avg_order_value: AVG(order_amount)
+  order_count: COUNT(*)
+
+# Optional: Specify source columns (defaults to *)
+source_columns:
+  - customer_id
+  - customer_name
+  - order_amount
+  - order_date
+
+# Optional: WHERE conditions
+where_conditions:
+  - order_status = 'completed'
+  - order_date >= '2024-01-01'
+
+# Optional: JOIN operations
+joins:
+  - type: LEFT
+    table: customer_segments
+    condition: raw_sales_data.customer_id = customer_segments.customer_id
+
+# Optional: GROUP BY columns
+group_by:
+  - customer_id
+  - customer_name
+
+# Optional: ORDER BY columns
+order_by:
+  - total_revenue DESC
+  - customer_name ASC

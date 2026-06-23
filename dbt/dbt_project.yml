@@ -23,3 +23,8 @@ models:
     marts:
       +schema: marts
       +materialized: table
+
+vars:
+  analysis_date: '2024-01-15'
+  target_region: 'All'
+  order_status: 'completed'
