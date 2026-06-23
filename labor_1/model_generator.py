@@ -140,25 +140,73 @@ SELECT * FROM transformed_data
 ### PRACTICE CHALLENGE 2 ###
 # TASK: Implement SQL model generation that takes configuration parameters and produces
 # complete SQL transformation model with SELECT, JOIN, and WHERE logic based on config specs
-# YOUR CODE HERE
 
 def generate_sql_model(config: Dict[str, Any], config_file: str = "config.yml") -> str:
     """
     Generate SQL transformation model from configuration
-    
+
     Args:
         config: Validated configuration dictionary
         config_file: Name of source configuration file
-    
+
     Returns:
         str: Complete SQL transformation model
     """
-    # Use the SQL template from get_sql_template()
-    # Extract configuration parameters and populate template
-    # Handle transformations, joins, filters, and aggregations
-    # Default values for optional fields
-    
-    pass
+    template = get_sql_template()
+
+    source_table = config['source_table']
+    target_table = config['target_table']
+    transformations = config['transformations']
+
+    # source_columns: explicit list or default to wildcard
+    cols = config.get('source_columns')
+    source_columns = ', '.join(cols) if cols else '*'
+
+    # WHERE clause: join conditions with AND
+    where_conditions = config.get('where_conditions', [])
+    if where_conditions:
+        where_clause = 'WHERE ' + '\n    AND '.join(where_conditions)
+    else:
+        where_clause = ''
+
+    # transformation_logic: "expression AS alias" for each mapping entry
+    transformation_lines = [
+        f'{expr} AS {alias}'
+        for alias, expr in transformations.items()
+    ]
+    transformation_logic = ',\n        '.join(transformation_lines)
+
+    # JOIN clause: one line per join
+    joins = config.get('joins', [])
+    if joins:
+        join_parts = [
+            f"{j['type']} JOIN {j['table']} ON {j['condition']}"
+            for j in joins
+        ]
+        join_clause = '\n    '.join(join_parts)
+    else:
+        join_clause = ''
+
+    # GROUP BY clause
+    group_by = config.get('group_by', [])
+    group_by_clause = f"GROUP BY {', '.join(group_by)}" if group_by else ''
+
+    # ORDER BY clause
+    order_by = config.get('order_by', [])
+    order_by_clause = f"ORDER BY {', '.join(order_by)}" if order_by else ''
+
+    return template.format(
+        source_table=source_table,
+        target_table=target_table,
+        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        config_file=config_file,
+        source_columns=source_columns,
+        where_clause=where_clause,
+        transformation_logic=transformation_logic,
+        join_clause=join_clause,
+        group_by_clause=group_by_clause,
+        order_by_clause=order_by_clause,
+    )
 
 def validate_sql_syntax(sql_content: str) -> bool:
     """
