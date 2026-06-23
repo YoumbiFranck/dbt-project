@@ -235,28 +235,45 @@ def validate_sql_syntax(sql_content: str) -> bool:
 ### PRACTICE CHALLENGE 3 ###
 # TASK: Create file output function that saves generated SQL models with organized directory structure,
 # validates SQL syntax, and generates summary report of created files
-# YOUR CODE HERE
 
 def save_model_and_generate_report(sql_content: str, config: Dict[str, Any],
                                  output_dir: str, config_file: str) -> Dict[str, Any]:
     """
     Save generated SQL model and create summary report
-    
+
     Args:
         sql_content: Generated SQL model content
         config: Configuration used for generation
         output_dir: Directory to save files
         config_file: Source configuration file name
-    
+
     Returns:
         Dict containing file information and validation results
     """
-    # Create filename based on target_table and timestamp
-    # Validate SQL syntax before saving
-    # Save SQL file to output directory
-    # Return summary information for reporting
-    
-    pass
+    target_table = config['target_table']
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{target_table}_{timestamp}.sql"
+    file_path = os.path.join(output_dir, filename)
+
+    # Validate before writing — fail early if the generated SQL is broken
+    sql_valid = validate_sql_syntax(sql_content)
+
+    try:
+        with open(file_path, 'w') as f:
+            f.write(sql_content)
+    except OSError as e:
+        raise ModelGeneratorError(f"Failed to write SQL model to {file_path}: {e}")
+
+    return {
+        'status': 'success',
+        'filename': filename,
+        'file_path': file_path,
+        'source_table': config['source_table'],
+        'target_table': target_table,
+        'sql_valid': sql_valid,
+        'config_file': config_file,
+        'generated_at': timestamp,
+    }
 
 def process_single_config(config_path: str, output_dir: str) -> Dict[str, Any]:
     """
