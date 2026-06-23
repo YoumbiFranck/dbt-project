@@ -70,29 +70,43 @@ Without it, the automation script cannot generate SQL models.
 ### PRACTICE CHALLENGE 1 ###
 # TASK: Complete the configuration parser that loads YAML files, validates required fields
 # (source_table, target_table, transformations), and returns structured configuration with error handling
-# YOUR CODE HERE
 
 def load_and_validate_config(config_path: str) -> Dict[str, Any]:
     """
     Load and validate YAML configuration file
-    
+
     Args:
         config_path: Path to YAML configuration file
-    
+
     Returns:
         Dict containing validated configuration
-    
+
     Raises:
         ModelGeneratorError: If configuration is invalid or missing required fields
     """
-    # First check if file exists and provide helpful error message
     check_config_file_exists(config_path)
-    
-    # Add YAML loading logic here
-    # Required fields to validate: source_table, target_table, transformations
-    # Handle file not found, YAML parsing errors, and missing required fields
-    
-    pass
+
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        raise ModelGeneratorError(f"Invalid YAML syntax in configuration file: {e}")
+
+    if not isinstance(config, dict):
+        raise ModelGeneratorError("Configuration file must contain a YAML mapping (key-value pairs)")
+
+    required_fields = ['source_table', 'target_table', 'transformations']
+    missing_fields = [field for field in required_fields if field not in config]
+    if missing_fields:
+        raise ModelGeneratorError(
+            f"Missing required configuration fields: {', '.join(missing_fields)}\n"
+            f"All required fields: {', '.join(required_fields)}"
+        )
+
+    if not isinstance(config['transformations'], dict):
+        raise ModelGeneratorError("'transformations' must be a YAML mapping of column names to SQL expressions")
+
+    return config
 
 # PROVIDED CODE - DO NOT MODIFY
 def get_sql_template() -> str:
