@@ -1,4 +1,4 @@
-.PHONY: up down logs build dbt-run dbt-test dbt-debug docs clean
+.PHONY: up down logs build dbt-run dbt-test dbt-debug docs clean labor-1-build labor-1-run labor-1-shell
 
 # ─── Infrastructure ─────────────────────────────────────────────────────────
 
@@ -63,3 +63,14 @@ clean:
 
 ps:
 	docker compose ps
+
+# ─── Labor 1 Python ─────────────────────────────────────────────────────────
+
+labor-1-build:
+	docker compose --profile labor build labor-1
+
+labor-1-run:
+	docker compose --profile labor run --rm labor-1
+
+labor-1-shell:
+	docker compose --profile labor run --rm --entrypoint /bin/sh labor-1
